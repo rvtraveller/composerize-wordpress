@@ -63,6 +63,10 @@ class WordpressInspector
             if ($semantic_version === false) {
                 $semantic_version = null;
             }
+
+            // We need to check if this is a private plugin that doesn't exist for download (or a custom one)
+
+
             $projects[$machine_name]["version"] = $semantic_version;
             $projects[$machine_name]["dir"] = $plugin_name;
         }
