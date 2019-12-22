@@ -85,7 +85,7 @@ class CoreFinder
    */
   protected function isValidRoot($path)
   {
-    if (!empty($path) && is_dir($path) && file_exists($path . '/wp-load.php') && file_exists($path . '/' . $this->getComposerFileName())) {
+    if (!empty($path) && is_dir($path) && file_exists($path . '/wp-load.php')) {
       // Check to see if this is a WordPress site.
       $candidate = 'wp-includes/class-wp-query.php';
       if (file_exists($path . '/' . $candidate)) {

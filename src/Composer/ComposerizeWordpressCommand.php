@@ -38,9 +38,9 @@ class ComposerizeWordpressCommand extends BaseCommand
         $this->addOption('exact-versions', null, InputOption::VALUE_NONE, 'Use exact version constraints rather than the recommended caret operator.');
         $this->addOption('no-update', null, InputOption::VALUE_NONE, 'Prevent "composer update" being run after file generation.');
         $this->addOption('no-gitignore', null, InputOption::VALUE_NONE, 'Prevent root .gitignore file from being modified.');
-        $this->addUsage('--composer-root=. --drupal-root=./docroot');
-        $this->addUsage('--composer-root=. --drupal-root=./web');
-        $this->addUsage('--composer-root=. --drupal-root=.');
+        $this->addUsage('--composer-root=. --core-root=./docroot');
+        $this->addUsage('--composer-root=. --core-root=./web');
+        $this->addUsage('--composer-root=. --core-root=.');
         $this->addUsage('--exact-versions --no-update --no-gitignore');
     }
 
@@ -55,7 +55,7 @@ class ComposerizeWordpressCommand extends BaseCommand
         $this->input = $input;
         $this->fs = new Filesystem();
         $this->setDirectories($input);
-        $this->coreVersion = $this->determineDrupalCoreVersion();
+        $this->coreVersion = $this->determineWordPressCoreVersion();
         $this->removeAllComposerFiles();
         $this->createNewComposerJson();
         $this->addRequirementsToComposerJson();
@@ -137,7 +137,6 @@ class ComposerizeWordpressCommand extends BaseCommand
         $projects = $this->findContribProjects($root_composer_json);
         $this->requireContribProjects($root_composer_json, $projects);
         $this->requireWordpressCore($root_composer_json);
-        //$this->addPatches($projects, $root_composer_json);
 
         ComposerJsonManipulator::writeObjectToJsonFile(
             $root_composer_json,
@@ -149,7 +148,7 @@ class ComposerizeWordpressCommand extends BaseCommand
      * @return mixed|string
      * @throws \Exception
      */
-    protected function determineDrupalCoreVersion()
+    protected function determineWordPressCoreVersion()
     {
         if (file_exists($this->coreRoot . "/wp-includes/version.php")) {
             $core_version = WordpressInspector::determineWordpressCoreVersionFromVersionPhp(
@@ -224,7 +223,7 @@ class ComposerizeWordpressCommand extends BaseCommand
         $gitignore_entries = [];
         foreach ($template_gitignore as $key => $line) {
             $gitignore_entries[] = str_replace(
-                '[drupal-root]',
+                '[web-root]',
                 $this->coreRootRelative,
                 $line
             );
@@ -362,32 +361,5 @@ class ComposerizeWordpressCommand extends BaseCommand
         );
         $projects = array_merge($modules_contrib, $themes);
         return $projects;
-    }
-
-    /**
-     * @param $projects
-     * @param $root_composer_json
-     *
-     * @todo
-     */
-    protected function addPatches($projects, $root_composer_json)
-    {
-        $projects = WordpressInspector::findProjectPatches($projects);
-        $patch_dir = $this->getBaseDir() . "/patches";
-        $this->fs->mkdir($patch_dir);
-        foreach ($projects as $project_name => $project) {
-            if (array_key_exists('patches', $project)) {
-                foreach ($project['patches'] as $key => $patch) {
-                    $target_filename = $patch_dir . "/" . basename($patch);
-                    $this->fs->copy($patch, $target_filename);
-                    $relative_path = $this->fs->makePathRelative(
-                        $target_filename,
-                        $this->getBaseDir()
-                    );
-                    $relative_path = rtrim($relative_path, '/');
-                    $root_composer_json->extra->patches["drupal/" . $project_name][$relative_path] = $relative_path;
-                }
-            }
-        }
     }
 }

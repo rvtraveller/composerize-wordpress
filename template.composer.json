@@ -61,7 +61,7 @@
     },
     "merge-plugin": {
       "include": [
-        "[wordpress-root]/wp-content/plugins/*/composer.json"
+        "web/wp-content/plugins/*/composer.json"
       ],
       "replace": false,
       "ignore-duplicates": true

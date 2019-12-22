@@ -3,6 +3,7 @@
 namespace rvtraveller\ComposerConverter\Utility;
 
 use Composer\Semver\Semver;
+use GuzzleHttp\Client;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
@@ -65,13 +66,29 @@ class WordpressInspector
             }
 
             // We need to check if this is a private plugin that doesn't exist for download (or a custom one)
-
-
-            $projects[$machine_name]["version"] = $semantic_version;
-            $projects[$machine_name]["dir"] = $plugin_name;
+            if (WordpressInspector::checkIfProjectExists($plugin_name)) {
+                $projects[$machine_name]["version"] = $semantic_version;
+                $projects[$machine_name]["dir"] = $plugin_name;
+                rmdir($path . "/" . $subdir . "/" . $plugin_name);
+            }
         }
 
         return $projects;
+    }
+
+    /**
+     * Checks if project exists on WordPress.org
+     *
+     * @param string $package_name
+     *  The name of the package to check.
+     *
+     * @return bool
+     */
+    public static function checkIfProjectExists($package_name) {
+        $client = new Client(['base_uri' => 'https://api.wordpress.org/plugins/info/1.0/']);
+        $response = $client->get($package_name . '.json');
+        var_dump($response->getStatusCode());
+        return $response->getStatusCode() == 200;
     }
 
     /**
