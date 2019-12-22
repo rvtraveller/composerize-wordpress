@@ -62,6 +62,7 @@ class ComposerizeWordpressCommand extends BaseCommand
         if (!$this->input->getOption('no-gitignore')) {
             $this->mergeTemplateGitignore();
         }
+        $this->downloadDependencies();
 
         $exit_code = 0;
         if (!$input->getOption('no-update')) {
@@ -142,6 +143,34 @@ class ComposerizeWordpressCommand extends BaseCommand
             $root_composer_json,
             $this->rootComposerJsonPath
         );
+    }
+
+    protected function downloadDependencies()
+    {
+        $dependencies = [
+            'ScriptHandler.php' => 'https://raw.githubusercontent.com/pantheon-systems/example-wordpress-composer/master/scripts/composer/ScriptHandler.php',
+            'cleanup-composer' => 'https://raw.githubusercontent.com/pantheon-systems/example-wordpress-composer/master/scripts/composer/cleanup-composer',
+        ];
+        $base_dir = $this->getBaseDir();
+        if (!is_dir($base_dir . '/scripts/composer')) {
+            mkdir($base_dir . '/scripts/composer', 0777, true);
+        }
+        foreach ($dependencies as $file => $remote) {
+            $url = $remote;
+            touch($base_dir . '/scripts/composer/' . $file);
+
+            $curl = curl_init();
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => $url,
+                CURLOPT_RETURNTRANSFER => 1,
+                CURLOPT_TIMEOUT        => 50,
+            ]);
+
+            $response = curl_exec($curl);
+            file_put_contents($base_dir . '/scripts/composer/' . $file, $response);
+        }
+        chmod($base_dir . '/scripts/composer/cleanup-composer', 0777);
     }
 
     /**

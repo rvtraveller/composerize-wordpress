@@ -4,10 +4,11 @@
   "type": "composer-plugin",
   "require": {
     "php": ">=5.6",
+    "ext-curl": "*",
+    "ext-json": "*",
     "composer-plugin-api": "^1.0.0",
     "composer/semver": "^1.4",
     "grasmash/composerize-drupal": "^1.2",
-    "guzzlehttp/guzzle": "^6.5",
     "symfony/finder": "^3.4",
     "symfony/yaml": "^3.4",
     "webmozart/path-util": "^2.3"
